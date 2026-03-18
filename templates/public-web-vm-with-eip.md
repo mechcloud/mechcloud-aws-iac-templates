@@ -11,6 +11,35 @@ In this scenario, we will provision a Virtual Machine (EC2 instance) inside an i
 - Dynamic macros (`{{CURRENT_REGION}}`, `{{CURRENT_IP}}`, `{{Image|arm64_ubuntu_24_04}}`)
 - Cross-resource referencing (`ref:`)
 
+### Architecture Diagram
+
+```mermaid
+flowchart TB
+    Internet((Internet))
+
+    subgraph VPC [VPC: vpc1 - 10.0.0.0/16]
+        direction TB
+        IGW([Internet Gateway: igw1])
+        RT{Route Table: public_rt}
+
+        subgraph Subnet [Subnet: subnet1 - 10.0.1.0/24]
+            direction TB
+            SG[Security Group: sg1]
+            VM(EC2 Instance: vm1)
+        end
+    end
+
+    EIP([Elastic IP: eip1])
+    EBS[(EBS Volume: vol1)]
+
+    Internet -->|HTTP / SSH| EIP
+    EIP -.->|Resolves to| IGW
+    IGW --> RT
+    RT -->|Routes 0.0.0.0/0| Subnet
+    SG -->|Allows Ports 80 & 22| VM
+    EBS -.->|Attached at /dev/sdf| VM
+```
+
 ***
 
 ## Step 1: Setting up Networking
